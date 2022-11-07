@@ -63,7 +63,6 @@ export class CsiInfrastructureStack extends Stack {
           s3OriginSource: {
             originAccessIdentity: accessIdentity,
             s3BucketSource: siteBucket,
-            originPath: '/',
           },
           behaviors: [
             {
