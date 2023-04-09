@@ -19,7 +19,7 @@ export class CsiInfrastructureStack extends Stack {
     super(scope, id, props);
 
     // TODO: real domain name
-    const DOMAIN_NAME = 'sexytaxes.org';
+    const DOMAIN_NAME = 'csi.vengal.dev';
     const WWW_DOMAIN_NAME = `www.${DOMAIN_NAME}`;
 
     const siteBucket = new s3.Bucket(this, 'WebsiteBucket', {
