@@ -2,15 +2,14 @@ import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import { BucketEncryption, BucketAccessControl, BlockPublicAccess } from 'aws-cdk-lib/aws-s3';
 import {
-  ViewerCertificate,
-  ViewerProtocolPolicy,
-  HttpVersion,
   PriceClass,
   OriginAccessIdentity,
 } from 'aws-cdk-lib/aws-cloudfront';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 
@@ -34,7 +33,9 @@ export class CsiInfrastructureStack extends Stack {
     const accessIdentity = new OriginAccessIdentity(this, 'CloudfrontAccess');
     const cloudfrontUserAccessPolicy = new PolicyStatement();
     cloudfrontUserAccessPolicy.addActions('s3:GetObject');
-    cloudfrontUserAccessPolicy.addPrincipals(accessIdentity.grantPrincipal);
+    cloudfrontUserAccessPolicy.addPrincipals(
+      new iam.CanonicalUserPrincipal(accessIdentity.cloudFrontOriginAccessIdentityS3CanonicalUserId)
+    );
     cloudfrontUserAccessPolicy.addResources(siteBucket.arnForObjects('*'));
     siteBucket.addToResourcePolicy(cloudfrontUserAccessPolicy);
 
@@ -48,45 +49,48 @@ export class CsiInfrastructureStack extends Stack {
       validation: CertificateValidation.fromDns(),
     });
 
-    const ROOT_INDEX_FILE = 'index.html';
-    const cfDist = new cloudfront.CloudFrontWebDistribution(this, 'CfDistribution', {
+    const cfFunction = new cloudfront.Function(this, 'CfPathRewriteFunction', {
+      code: cloudfront.FunctionCode.fromInline(`
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri;
+
+          // Check whether the URI is missing a file name.
+          if (uri.endsWith('/')) {
+            request.uri += 'index.html';
+          }
+          // Check whether the URI is missing a file extension.
+          else if (!uri.includes('.')) {
+            request.uri += '/index.html';
+          }
+
+          return request;
+        }
+      `),
+      comment: 'Handles issue with cloudfront+astro routing',
+      functionName: 'CloudfrontAstroPathRewriteFunction'
+    })
+    cfFunction.applyRemovalPolicy(RemovalPolicy.DESTROY);
+
+    const cfDist = new cloudfront.Distribution(this, 'CfDistribution', {
       comment: 'CSI Site Cloudfront Distro',
-      viewerCertificate: ViewerCertificate.fromAcmCertificate(cert, {
-        aliases: [DOMAIN_NAME, WWW_DOMAIN_NAME],
-      }),
-      defaultRootObject: ROOT_INDEX_FILE,
-      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      httpVersion: HttpVersion.HTTP2,
+      certificate: cert,
+      domainNames: [DOMAIN_NAME, WWW_DOMAIN_NAME],
       priceClass: PriceClass.PRICE_CLASS_100,
-      originConfigs: [
-        {
-          s3OriginSource: {
-            originAccessIdentity: accessIdentity,
-            s3BucketSource: siteBucket,
-          },
-          behaviors: [
-            {
-              compress: true,
-              isDefaultBehavior: true,
-            },
-          ],
-        },
-      ],
-      // Handle errors within site
-      errorConfigurations: [
-        {
-          errorCachingMinTtl: 300, // in seconds
-          errorCode: 403,
-          responseCode: 200,
-          responsePagePath: `/${ROOT_INDEX_FILE}`,
-        },
-        {
-          errorCachingMinTtl: 300, // in seconds
-          errorCode: 404,
-          responseCode: 200,
-          responsePagePath: `/${ROOT_INDEX_FILE}`,
-        },
-      ],
+      defaultRootObject: 'index.html',
+      defaultBehavior: {
+        origin: new origins.S3Origin(siteBucket, {
+          originAccessIdentity: accessIdentity,
+        }),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD,
+        compress: true,
+        functionAssociations: [{
+          function: cfFunction,
+          eventType: cloudfront.FunctionEventType.VIEWER_REQUEST
+        }],
+      },
     });
 
     new CfnOutput(this, 'CfDomainName', {

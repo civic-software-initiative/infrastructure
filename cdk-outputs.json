@@ -1,7 +1,7 @@
 {
   "CsiInfrastructureStack": {
-    "CfDistId": "E1FJ5EQIZGSWBA",
-    "CfDomainName": "d2apcve72g720g.cloudfront.net",
+    "CfDistId": "E1JNGY3CII0WPM",
+    "CfDomainName": "d34ii85yecxtn.cloudfront.net",
     "S3BucketName": "s3://csiinfrastructurestack-websitebucket75c24d94-7hw9od41tilm"
   }
 }
