@@ -1,7 +1,7 @@
 {
-  "CsiInfrastructureStack": {
-    "CfDistId": "E1JNGY3CII0WPM",
-    "CfDomainName": "d34ii85yecxtn.cloudfront.net",
-    "S3BucketName": "s3://csiinfrastructurestack-websitebucket75c24d94-7hw9od41tilm"
+  "CsiLandingPageStack": {
+    "CfDistId": "E2HPAM435TB2AV",
+    "S3BucketName": "s3://csilandingpagestack-websitebucket75c24d94-acm0d1xyv87r",
+    "Domain": "civicsoftwareinitiative.org"
   }
 }

@@ -1,25 +1,24 @@
 import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as route53 from 'aws-cdk-lib/aws-route53';
 import { BucketEncryption, BucketAccessControl, BlockPublicAccess } from 'aws-cdk-lib/aws-s3';
 import {
   PriceClass,
   OriginAccessIdentity,
 } from 'aws-cdk-lib/aws-cloudfront';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 
-export class CsiInfrastructureStack extends Stack {
+export class CsiLandingPageStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // TODO: real domain name
-    const DOMAIN_NAME = 'csi.vengal.dev';
-    const WWW_DOMAIN_NAME = `www.${DOMAIN_NAME}`;
+    const DOMAIN_NAME = 'civicsoftwareinitiative.org';
 
     const siteBucket = new s3.Bucket(this, 'WebsiteBucket', {
       encryption: BucketEncryption.S3_MANAGED,
@@ -39,15 +38,14 @@ export class CsiInfrastructureStack extends Stack {
     cloudfrontUserAccessPolicy.addResources(siteBucket.arnForObjects('*'));
     siteBucket.addToResourcePolicy(cloudfrontUserAccessPolicy);
 
-    // This step will block deployment until you add the relevant CNAME records through your domain registrar
-    // Make sure you visit https://us-east-1.console.aws.amazon.com/acm/home?region=us-east-1#/certificates
-    // to check the CNAME records that need to be added
-    // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_cloudfront-readme.html#domain-names-and-certificates
-    const cert = new acm.Certificate(this, 'WebCert', {
-      domainName: WWW_DOMAIN_NAME,
-      subjectAlternativeNames: [DOMAIN_NAME],
-      validation: CertificateValidation.fromDns(),
-    });
+    const zone = route53.HostedZone.fromLookup(this, 'HostedZone', { domainName: DOMAIN_NAME });
+    const cert = new acm.DnsValidatedCertificate(this, 'SiteCertificate',
+      {
+          domainName: DOMAIN_NAME,
+          hostedZone: zone,
+          region: 'us-east-1',
+      }
+    );
 
     const cfFunction = new cloudfront.Function(this, 'CfPathRewriteFunction', {
       code: cloudfront.FunctionCode.fromInline(`
@@ -73,9 +71,9 @@ export class CsiInfrastructureStack extends Stack {
     cfFunction.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     const cfDist = new cloudfront.Distribution(this, 'CfDistribution', {
-      comment: 'CSI Site Cloudfront Distro',
+      comment: 'CSI Landing Page Cloudfront Distro',
       certificate: cert,
-      domainNames: [DOMAIN_NAME, WWW_DOMAIN_NAME],
+      domainNames: [DOMAIN_NAME],
       priceClass: PriceClass.PRICE_CLASS_100,
       defaultRootObject: 'index.html',
       defaultBehavior: {
@@ -93,9 +91,15 @@ export class CsiInfrastructureStack extends Stack {
       },
     });
 
-    new CfnOutput(this, 'CfDomainName', {
-      value: cfDist.distributionDomainName,
-      description: 'Create a CNAME record with name `www` and value of this CF distribution URL',
+    const dnsRecord = new route53.ARecord(this, 'ARecord', {
+      recordName: DOMAIN_NAME,
+      target: route53.RecordTarget.fromAlias(new CloudFrontTarget(cfDist)),
+      zone
+    });
+
+    new CfnOutput(this, 'Domain', {
+      value: dnsRecord.domainName,
+      description: 'Landing page accessible at domain',
     });
     new CfnOutput(this, 'S3BucketName', {
       value: `s3://${siteBucket.bucketName}`,
