@@ -26,6 +26,7 @@ export class CsiLandingPageStack extends Stack {
     super(scope, id, props);
 
     const DOMAIN_NAME = "civicsoftwareinitiative.org";
+    const WWW_DOMAIN_NAME = `www.${DOMAIN_NAME}`;
 
     const siteBucket = new s3.Bucket(this, "WebsiteBucket", {
       encryption: BucketEncryption.S3_MANAGED,
@@ -50,10 +51,10 @@ export class CsiLandingPageStack extends Stack {
     const zone = route53.HostedZone.fromLookup(this, "HostedZone", {
       domainName: DOMAIN_NAME,
     });
-    const cert = new acm.DnsValidatedCertificate(this, "SiteCertificate", {
+    const cert = new acm.Certificate(this, "SslCertificate", {
       domainName: DOMAIN_NAME,
-      hostedZone: zone,
-      region: "us-east-1",
+      subjectAlternativeNames: [WWW_DOMAIN_NAME],
+      validation: acm.CertificateValidation.fromDns(zone)
     });
 
     const cfFunction = new cloudfront.Function(this, "CfPathRewriteFunction", {
@@ -119,7 +120,7 @@ export class CsiLandingPageStack extends Stack {
     const cfDist = new cloudfront.Distribution(this, "CfDistribution", {
       comment: "CSI Landing Page Cloudfront Distro",
       certificate: cert,
-      domainNames: [DOMAIN_NAME],
+      domainNames: [DOMAIN_NAME, WWW_DOMAIN_NAME],
       priceClass: PriceClass.PRICE_CLASS_100,
       defaultRootObject: "index.html",
       defaultBehavior: {
@@ -142,6 +143,11 @@ export class CsiLandingPageStack extends Stack {
 
     const dnsRecord = new route53.ARecord(this, "ARecord", {
       recordName: DOMAIN_NAME,
+      target: route53.RecordTarget.fromAlias(new CloudFrontTarget(cfDist)),
+      zone,
+    });
+    new route53.ARecord(this, "WwwRecord", {
+      recordName: WWW_DOMAIN_NAME,
       target: route53.RecordTarget.fromAlias(new CloudFrontTarget(cfDist)),
       zone,
     });
