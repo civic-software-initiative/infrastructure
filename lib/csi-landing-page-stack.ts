@@ -1,4 +1,4 @@
-import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
@@ -70,6 +70,38 @@ export class CsiLandingPageStack extends Stack {
     })
     cfFunction.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
+    const responseHeaderPolicy = new cloudfront.ResponseHeadersPolicy(this, 'SecurityHeadersResponseHeaderPolicy', {
+      comment: 'Security headers response header policy',
+      securityHeadersBehavior: {
+        contentSecurityPolicy: {
+          override: true,
+          contentSecurityPolicy: "default-src 'self'"
+        },
+        strictTransportSecurity: {
+          override: true,
+          accessControlMaxAge: Duration.days(2 * 365),
+          includeSubdomains: true,
+          preload: true
+        },
+        contentTypeOptions: {
+          override: true
+        },
+        referrerPolicy: {
+          override: true,
+          referrerPolicy: cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN
+        },
+        xssProtection: {
+          override: true,
+          protection: true,
+          modeBlock: true
+        },
+        frameOptions: {
+          override: true,
+          frameOption: cloudfront.HeadersFrameOption.DENY
+        }
+      }
+    });
+
     const cfDist = new cloudfront.Distribution(this, 'CfDistribution', {
       comment: 'CSI Landing Page Cloudfront Distro',
       certificate: cert,
@@ -88,6 +120,7 @@ export class CsiLandingPageStack extends Stack {
           function: cfFunction,
           eventType: cloudfront.FunctionEventType.VIEWER_REQUEST
         }],
+        responseHeadersPolicy: responseHeaderPolicy,
       },
     });
 
