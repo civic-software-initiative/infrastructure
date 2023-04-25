@@ -54,7 +54,7 @@ export class CsiLandingPageStack extends Stack {
     const cert = new acm.Certificate(this, "SslCertificate", {
       domainName: DOMAIN_NAME,
       subjectAlternativeNames: [WWW_DOMAIN_NAME],
-      validation: acm.CertificateValidation.fromDns(zone)
+      validation: acm.CertificateValidation.fromDns(zone),
     });
 
     const cfFunction = new cloudfront.Function(this, "CfPathRewriteFunction", {
