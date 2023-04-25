@@ -1,14 +1,18 @@
-# Welcome to your CDK TypeScript project
-
-This is a blank project for CDK development with TypeScript.
+# CSI CDK Infrastructure
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
 ## Useful commands
 
-* `npm run build`                                 compile typescript to js
-* `npm run watch`                                 watch for changes and compile
-* `npm run test`                                  perform the jest unit tests
-* `cdk deploy --outputs-file cdk-outputs.json`    deploy this stack to your default AWS account/region
-* `cdk diff`                                      compare deployed stack with current state
-* `cdk synth`                                     emits the synthesized CloudFormation template
+| Command                                        | Action                                            |
+| :--------------------------------------------- | :------------------------------------------------ |
+| `npm install`                                  | Install dependencies                              |
+| `npm run build`                                | Compile typescript to js                          |
+| `npm run watch`                                | Watch for changes and compile                     |
+| `npm run test`                                 | Run the unit tests                                |
+| `npm run cdk ...`                              | Run CLI commands                                  |
+| `npm run format`                               | Format code with [prettier](https://prettier.io/) |
+|                                                |                                                   |
+| `cdk deploy --outputs-file cdk-outputs.json`   | Deploy to configured account/regions              |
+| `cdk diff`                                     | Compare deployed stack with current state         |
+| `cdk synth`                                    | Emits the synthesized CloudFormation template     |
