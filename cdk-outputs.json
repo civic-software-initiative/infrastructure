@@ -1,7 +1,7 @@
 {
   "CsiLandingPageStack": {
-    "CfDistId": "E2HPAM435TB2AV",
-    "S3BucketName": "s3://csilandingpagestack-websitebucket75c24d94-acm0d1xyv87r",
+    "CfDistId": "E3GOGC47X6OYY9",
+    "S3BucketName": "s3://csilandingpagestack-websitebucket75c24d94-wfvt0pvajvuf",
     "Domain": "civicsoftwareinitiative.org"
   }
 }
