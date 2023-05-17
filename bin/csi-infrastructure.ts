@@ -2,6 +2,7 @@
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { CsiLandingPageStack } from "../lib/csi-landing-page-stack";
+import { DemoEnvironments } from "../lib/demo-environments";
 
 const app = new cdk.App();
 new CsiLandingPageStack(app, "CsiLandingPageStack", {
@@ -18,4 +19,7 @@ new CsiLandingPageStack(app, "CsiLandingPageStack", {
   env: { account: "868683861378", region: "us-east-1" },
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+});
+new DemoEnvironments(app, "DemoEnvironments", {
+  env: { account: "868683861378", region: "us-east-1" },
 });
