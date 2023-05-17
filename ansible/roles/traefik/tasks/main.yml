@@ -1,0 +1,80 @@
+---
+- name: Create traefik user
+  user:
+    name: traefik
+    shell: /bin/bash
+
+- name: Create traefik systemd unit
+  template:
+    src: "traefik.service.j2"
+    dest: "/etc/systemd/system/traefik.service"
+    owner: traefik
+    group: traefik
+    mode: 0644
+  notify:
+    - Restart traefik
+
+- name: Ensure expected dirs exist
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "/usr/bin"
+    - "{{ traefik_config_dir }}"
+
+- name: Copy traefik static config
+  template:
+    src: "traefik.yml.j2"
+    dest: "{{ traefik_config_dir }}/traefik.yml"
+    owner: traefik
+    group: traefik
+    mode: 0644
+  notify:
+    - Restart traefik
+
+- name: Copy traefik dynamic config
+  template:
+    src: "config.yml.j2"
+    dest: "{{ traefik_config_dir }}/config.yml"
+    owner: traefik
+    group: traefik
+    mode: 0644
+  notify:
+    - Restart traefik
+
+- name: Ensure acme.json exists
+  copy:
+    content: ""
+    dest: "{{ traefik_config_dir }}/acme.json"
+    force: no
+    group: traefik
+    owner: traefik
+    mode: 0600
+  notify:
+    - Restart traefik
+
+- name: Register traefik bin
+  stat:
+    path: "/usr/bin/traefik"
+  register: traefik_bin
+
+- name: Download traefik binary
+  unarchive:
+    src: "{{ item.url }}"
+    dest: "{{ item.dest }}"
+    owner: traefik
+    group: traefik
+    mode: 0755
+    remote_src: yes
+    keep_newer: yes
+  with_items:
+    - url: "{{ traefik_binary_url }}"
+      dest: "/usr/bin"
+  when: traefik_bin.stat.exists == False
+
+- name: Ensure traefik service is running
+  systemd:
+    name: traefik
+    state: started
+    enabled: yes
+    daemon_reload: yes

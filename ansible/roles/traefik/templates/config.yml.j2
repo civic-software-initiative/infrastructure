@@ -1,0 +1,20 @@
+################################################################
+#
+# Dynamic Configuration for Traefik v2
+# https://doc.traefik.io/traefik/reference/dynamic-configuration/file/
+#
+################################################################
+
+http:
+  routers:
+    wellspring-demo:
+      rule: Host(`fire-admin.civicsoftwareinitiative.org`)
+      service: wellspring-demo
+      tls:
+        certResolver: lets-encrypt
+
+  services:
+    wellspring-demo:
+      loadBalancer:
+        servers:
+          - url: http://localhost:3001

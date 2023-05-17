@@ -1,0 +1,20 @@
+---
+- name: Install unattended-upgrades
+  apt:
+    name: unattended-upgrades
+    state: present
+
+- name: Install repository tools
+  apt:
+    name:
+      - debian-keyring
+      - debian-archive-keyring
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+    state: present
+
+- name: Ensure unattended-upgrades is runing
+  service:
+    name: unattended-upgrades
+    enabled: true
