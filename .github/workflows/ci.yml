@@ -1,9 +1,9 @@
-name: Lint
+name: CI
 on:
   pull_request:
     branches: [main]
 jobs:
-  format:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
