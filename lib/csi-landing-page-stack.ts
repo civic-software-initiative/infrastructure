@@ -148,6 +148,21 @@ export class CsiLandingPageStack extends Stack {
       zone,
     });
 
+    const deploymentRole = new iam.Role(this, 'DeploymentRole', {
+      assumedBy: new iam.WebIdentityPrincipal(
+        'arn:aws:iam::868683861378:oidc-provider/token.actions.githubusercontent.com', // existing gh <-> aws openid provider
+        {
+          // Role only assumable by gh actions running on main branch of relevant repo
+          "StringEquals": {
+            "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+            "token.actions.githubusercontent.com:sub": "repo:civic-software-initiative/csi-landing-page:ref:refs/heads/main"
+          }
+        }
+      ),
+    });
+    siteBucket.grantReadWrite(deploymentRole);
+    cfDist.grantCreateInvalidation(deploymentRole);
+
     new CfnOutput(this, "Domain", {
       value: dnsRecord.domainName,
       description: "Landing page accessible at domain",
