@@ -45,8 +45,15 @@ export class DemoEnvironments extends Stack {
       { os: ec2.OperatingSystemType.LINUX }
     );
 
-    // Create the instance using the Security Group, AMI, and KeyPair defined in the VPC created
-    const ec2Instance = new ec2.Instance(this, 'Instance', {
+    const wellspringDemoInstance = new ec2.Instance(this, 'WellspringDemoInstance', {
+      vpc,
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
+      machineImage: ami,
+      securityGroup: securityGroup,
+      keyName: keyPairName,
+      role: role
+    });
+    const fairChoicesDemoInstance = new ec2.Instance(this, 'FairChoicesDemoInstance', {
       vpc,
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
       machineImage: ami,
@@ -57,6 +64,7 @@ export class DemoEnvironments extends Stack {
 
 
     // Create outputs for connecting
-    new cdk.CfnOutput(this, 'Demo EC2 IP Address', { value: ec2Instance.instancePublicIp });
+    new cdk.CfnOutput(this, 'WellspringDemoInstance IP Address', { value: wellspringDemoInstance.instancePublicIp });
+    new cdk.CfnOutput(this, 'FairChoicesDemoInstance IP Address', { value: fairChoicesDemoInstance.instancePublicIp });
   }
 }
