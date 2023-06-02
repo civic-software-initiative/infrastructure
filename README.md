@@ -16,3 +16,12 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 | `cdk deploy --outputs-file cdk-outputs.json`   | Deploy to configured account/regions              |
 | `cdk diff`                                     | Compare deployed stack with current state         |
 | `cdk synth`                                    | Emits the synthesized CloudFormation template     |
+
+## Ansible
+
+Ansible is used to manage demo environments
+
+```bash
+$ cd ansible
+$ ansible-playbook -i hosts.yml playbook.yml -u ubuntu
+```
