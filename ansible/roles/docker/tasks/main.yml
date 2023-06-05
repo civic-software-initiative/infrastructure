@@ -27,3 +27,30 @@
       - docker-registry
     state: latest
     update_cache: true
+
+- name: Run database
+  community.docker.docker_compose:
+    project_name: db
+    definition:
+      version: "3"
+      services:
+        postgres:
+          image: postgres:15.1
+          restart: always
+          environment:
+            POSTGRES_USER: ubuntu
+            POSTGRES_HOST_AUTH_METHOD: trust
+          ports:
+            - "127.0.0.1:5432:5432"
+          volumes:
+            - "/var/run/postgresql:/var/run/postgresql"
+  register: db_output
+
+- name: Show results
+  ansible.builtin.debug:
+    var: db_output
+
+- name: Verify that db is running
+  ansible.builtin.assert:
+    that:
+      - "db_output.services.postgres.db_postgres_1.state.running"
