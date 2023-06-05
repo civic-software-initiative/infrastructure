@@ -47,7 +47,10 @@ export class DemoEnvironments extends Stack {
     // Use Latest Ubuntu Image
     const ami = ec2.MachineImage.fromSsmParameter(
       '/aws/service/canonical/ubuntu/server/focal/stable/current/amd64/hvm/ebs-gp2/ami-id',
-      { os: ec2.OperatingSystemType.LINUX }
+      {
+        os: ec2.OperatingSystemType.LINUX,
+        cachedInContext: true
+      }
     );
 
     // Wellspring Env
