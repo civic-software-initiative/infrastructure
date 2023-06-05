@@ -1,7 +1,7 @@
 {
   "DemoEnvironments": {
-    "FairChoicesDemoInstanceIPAddress": "50.16.40.246",
-    "WellspringDemoInstanceIPAddress": "35.153.131.238",
+    "FairChoicesDemoInstanceIPAddress": "18.232.116.120",
+    "WellspringDemoInstanceIPAddress": "35.153.104.134",
     "WellspringDemoUrl": "fire-admin.civicsoftwareinitiative.org",
     "FairChoicesDemoUrl": "fcdr.civicsoftwareinitiative.org"
   }

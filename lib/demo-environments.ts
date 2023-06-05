@@ -77,7 +77,7 @@ export class DemoEnvironments extends Stack {
     const fairChoicesARecord = new route53.ARecord(this, 'FairChoicesARecord', {
       zone: hostedZone,
       recordName: 'fcdr',
-      target: route53.RecordTarget.fromIpAddresses(wellspringDemoInstance.instancePublicIp),
+      target: route53.RecordTarget.fromIpAddresses(fairChoicesDemoInstance.instancePublicIp),
     });
 
 
