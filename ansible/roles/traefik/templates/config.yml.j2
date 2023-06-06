@@ -12,9 +12,18 @@ http:
       service: wellspring-demo
       tls:
         certResolver: lets-encrypt
+    fairchoices-demo:
+      rule: Host(`fcdr.civicsoftwareinitiative.org`)
+      service: fairchoices-demo
+      tls:
+        certResolver: lets-encrypt
 
   services:
     wellspring-demo:
       loadBalancer:
         servers:
           - url: http://localhost:3001
+    fairchoices-demo:
+      loadBalancer:
+        servers:
+          - url: http://localhost:3000

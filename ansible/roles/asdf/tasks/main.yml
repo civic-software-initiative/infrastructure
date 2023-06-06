@@ -1,0 +1,15 @@
+---
+- name: Check if asdf downloaded
+  stat:
+    path: "~/.asdf"
+  register: asdf_dir
+
+- name: Download asdf
+  shell: "git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.11.3"
+  when: not asdf_dir.stat.exists
+
+- name: Ensure asdf is sourced
+  lineinfile:
+    path: ~/.bashrc
+    regexp: '\. "\$HOME\/\.asdf\/asdf\.sh"'
+    line: '. "$HOME/.asdf/asdf.sh"'

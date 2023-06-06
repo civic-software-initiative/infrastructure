@@ -10,5 +10,6 @@
     "us-east-1d",
     "us-east-1e",
     "us-east-1f"
-  ]
+  ],
+  "ssm:account=868683861378:parameterName=/aws/service/canonical/ubuntu/server/focal/stable/current/amd64/hvm/ebs-gp2/ami-id:region=us-east-1": "ami-0efd657a42099f98f"
 }

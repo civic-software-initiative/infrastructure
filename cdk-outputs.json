@@ -1,10 +1,8 @@
 {
-  "CsiLandingPageStack": {
-    "CfDistId": "E3GOGC47X6OYY9",
-    "S3BucketName": "s3://csilandingpagestack-websitebucket75c24d94-wfvt0pvajvuf",
-    "Domain": "civicsoftwareinitiative.org"
-  },
   "DemoEnvironments": {
-    "DemoEC2IPAddress": "34.229.23.230"
+    "FairChoicesDemoInstanceIPAddress": "18.232.116.120",
+    "WellspringDemoInstanceIPAddress": "35.153.104.134",
+    "WellspringDemoUrl": "fire-admin.civicsoftwareinitiative.org",
+    "FairChoicesDemoUrl": "fcdr.civicsoftwareinitiative.org"
   }
 }
